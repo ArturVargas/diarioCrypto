@@ -1,29 +1,43 @@
 import { useState, useEffect } from 'react';
 import fire from '../config/fire-config';
+import { diarioCryptoData, webReference } from '../config/pagesData';
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
 
 export default function Home() {
-  const [coinMonksPosts, setCoinMonksPosts] = useState([]);
+  const [postsData, setPostsData] = useState({
+    coinMonks: [],
+    coinTelegraphPosts: [],
+    consensys: [],
+    simpleAsWater: []
+  });
 
   useEffect(() => {
-    fire.firestore()
-      .collection('coinMonks')
-      .onSnapshot((snap) => {
-        const posts = snap.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setCoinMonksPosts(posts);
-      });
+    getAllData();
   }, []);
 
-  console.log(coinMonksPosts);
-  
+  const getAllData = () => {
+    diarioCryptoData.forEach((element, idx) => {
+      fire.firestore()
+        .collection(element)
+        .onSnapshot((snap) => {
+          const posts = snap.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setPostsData({
+            ...postsData,
+            [element]: [...posts]
+          })
+        });
+    });
+  }
+
+
   return (
     <div className={styles.container}>
       <Head>
-        <title>Create Next App</title>
+        <title>diario.crypto</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -33,9 +47,22 @@ export default function Home() {
         </h1>
 
         <div className={styles.card}>
-
+          <div className={styles.grid}>
+            {
+              postsData.coinMonks.length > 0 && (
+                postsData.coinMonks.map((item, idx) => {
+                  console.log(item)
+                  return (
+                    <a className={styles.card} key={idx}>
+                      <h3>{item.title}</h3>
+                    </a>
+                  )
+                })
+              )
+            }
+          </div>
         </div>
-       
+
       </main>
 
       <footer className={styles.footer}>
